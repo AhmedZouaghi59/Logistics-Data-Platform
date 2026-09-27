@@ -1,4 +1,4 @@
-# 🚚 Logistics Data Platform — Snowflake & dbt
+# 🚚 Logistics Data Platform — AWS S3 & Snowflake & dbt
 
 ## 📊 Présentation
 
