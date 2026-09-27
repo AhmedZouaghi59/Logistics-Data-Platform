@@ -1,10 +1,10 @@
-# 🚚 Logistics Data Platform — AWS S3 & Snowflake & dbt
+# 🚚 Logistics Data Platform — AWS S3, Snowflake & dbt
 
 ## 📊 Présentation
 
-Ce projet consiste à construire une petite plateforme de données dédiée à l'analyse de données de supply chain.
+Ce projet consiste à construire une plateforme de données dédiée à l'analyse de données de **Supply Chain**.
 
-L'objectif est de mettre en place une chaîne de traitement allant du stockage des données brutes dans **AWS S3** jusqu'à la création de données structurées et orientées métier dans **Snowflake**, avec **dbt** pour gérer les transformations et les contrôles de qualité.
+L'objectif est de mettre en place une chaîne de traitement allant du stockage des données sources dans **AWS S3** jusqu'à la création de données structurées et orientées métier dans **Snowflake**, avec **dbt** pour gérer les transformations, la modélisation et les contrôles de qualité.
 
 Le projet s'appuie sur le **DataCo Supply Chain Dataset**, contenant des informations sur les commandes, clients, produits, ventes et livraisons.
 
@@ -12,25 +12,28 @@ Le projet s'appuie sur le **DataCo Supply Chain Dataset**, contenant des informa
 
 ## 🎯 Objectifs
 
-Le projet cherche notamment à :
+Le projet vise à :
 
-- centraliser les données sources dans un environnement cloud ;
-- charger les données dans Snowflake ;
+- stocker les données sources dans AWS S3 ;
+- connecter AWS S3 à Snowflake ;
+- charger les données dans un Data Warehouse ;
 - structurer les données selon une architecture **Bronze / Silver / Gold** ;
 - nettoyer et typer les données avec dbt ;
-- créer des modèles orientés métier ;
+- construire des modèles orientés métier ;
 - mettre en place des contrôles de qualité ;
-- conserver une organisation claire et facilement maintenable.
+- versionner et documenter le projet avec GitHub.
 
 ---
 
 ## 🛠️ Technologies
 
-- **AWS S3** — stockage des données sources
-- **Snowflake** — Data Warehouse
-- **SQL** — ingestion et transformations
-- **dbt** — transformation, modélisation et tests
-- **Git / GitHub** — versionnement et documentation
+| Technologie | Utilisation |
+|---|---|
+| **AWS S3** | Stockage des données sources |
+| **Snowflake** | Data Warehouse et ingestion |
+| **SQL** | Chargement et transformations |
+| **dbt** | Transformation, modélisation et tests |
+| **Git / GitHub** | Versionnement et documentation |
 
 ---
 
@@ -65,20 +68,44 @@ Le projet repose sur une architecture de type **Medallion**, organisée en trois
                     │      GOLD       │
                     │ Modèles métier  │
                     └─────────────────┘
+```
 
 Cette organisation permet de séparer les différentes étapes du traitement :
 
-Bronze : ingestion et conservation des données sources ;
-Silver : nettoyage, standardisation et typage des données ;
-Gold : préparation des données pour l'analyse et les besoins métier.
+- **Bronze** : ingestion et structuration initiale des données sources ;
+- **Silver** : nettoyage, standardisation et typage des données ;
+- **Gold** : préparation des données pour l'analyse et les besoins métier.
+
+---
+
+## ☁️ AWS S3
+
+AWS S3 constitue le point d'entrée du pipeline.
+
+Le fichier source est stocké dans un bucket privé et organisé de manière à séparer les données brutes :
+
+```text
+logistics-data-platform-ahmed/
+└── raw/
+    └── dataco/
+        └── DataCoSupplyChainDataset.csv
+```
+
+La connexion avec Snowflake est réalisée à l'aide d'une **IAM Role** et d'une **Storage Integration**.
+
+La configuration AWS utilisée pour le projet est disponible ici :
+
+**[Voir la configuration AWS S3 →](AWS%20S3/)**
+
+> Les informations sensibles telles que les clés AWS, mots de passe ou identifiants temporaires ne sont pas stockées dans le repository.
 
 ---
 
 ## 🗄️ Snowflake
 
-Snowflake constitue le Data Warehouse du projet.
+Snowflake constitue le **Data Warehouse** du projet.
 
-La base est organisée de la manière suivante :
+La base de données est organisée en trois schémas correspondant aux différentes couches :
 
 ```text
 LOGISTIC_DWH
@@ -94,52 +121,69 @@ Un warehouse dédié est utilisé :
 LOGISTIC_WH
 ```
 
-### ⚙️ Mise en place
+### ⚙️ Ingestion
 
-La connexion entre AWS S3 et Snowflake repose sur une **Storage Integration** associée à un rôle IAM AWS.
+La connexion entre AWS S3 et Snowflake repose sur :
 
-Le fichier source est ensuite accessible depuis Snowflake grâce à un **External Stage**.
+- une **IAM Role AWS** ;
+- une **Storage Integration Snowflake** ;
+- un **External Stage** ;
+- un **File Format** adapté au fichier source ;
+- `COPY INTO` pour charger les données.
 
-Le chargement est réalisé dans la table :
+Le fichier source est d'abord chargé dans :
 
 ```text
 BRONZE.RAW_DATACO
 ```
 
-à l'aide de `COPY INTO`.
+Cette table conserve les données proches de la source avant leur transformation avec dbt.
 
-Le projet contient également un **File Format** adapté au fichier source, notamment pour gérer son encodage.
+La configuration Snowflake complète est disponible ici :
 
-La configuration complète de l'environnement Snowflake est disponible dans :
-
-[`snowflake/setup.sql`](snowflake/setup.sql)
+**[Voir les scripts Snowflake →](Snowflake/)**
 
 ---
 
 ## 🥉 Bronze
 
-La couche Bronze correspond aux données proches de la source.
+La couche **Bronze** correspond à la première étape de structuration des données.
 
-Le fichier `RAW_DATACO` est réparti en plusieurs modèles afin de faciliter la suite du traitement :
+La table source `RAW_DATACO` est répartie en plusieurs modèles afin de faciliter les traitements suivants :
 
 ```text
-client
-produit
-departement
-localisation
-livraison
-commande
+BRONZE
+│
+├── client
+├── produit
+├── departement
+├── localisation
+├── livraison
+└── commande
 ```
 
-Cette couche conserve les noms de colonnes issus du dataset afin de garder une correspondance avec la source.
+Cette couche reste volontairement proche de la source et conserve les noms de colonnes du dataset.
 
 ---
 
 ## 🥈 Silver
 
-La couche Silver est utilisée pour nettoyer et typer les données.
+La couche **Silver** est destinée au nettoyage et au typage des données.
 
-Les principales transformations réalisées avec dbt sont notamment :
+Les modèles sont :
+
+```text
+SILVER
+│
+├── client
+├── produit
+├── departement
+├── localisation
+├── livraison
+└── commande
+```
+
+Les principales transformations réalisées avec dbt sont :
 
 - nettoyage des champs texte avec `TRIM()` ;
 - conversion des identifiants avec `TRY_TO_NUMBER()` ;
@@ -147,38 +191,27 @@ Les principales transformations réalisées avec dbt sont notamment :
 - conversion des dates avec `TRY_TO_TIMESTAMP()` ;
 - déduplication de certaines tables de référence.
 
-Les modèles Silver sont :
-
-```text
-client
-produit
-departement
-localisation
-livraison
-commande
-```
-
-Cette couche permet d'obtenir des données plus propres et adaptées aux transformations métier.
+L'objectif est d'obtenir des données plus propres et correctement typées avant la construction des modèles métier.
 
 ---
 
 ## 🥇 Gold
 
-La couche Gold contient les modèles préparés pour l'analyse.
+La couche **Gold** contient les modèles préparés pour l'analyse.
 
-Trois modèles ont été développés :
+Trois modèles principaux ont été développés :
 
 ### `ventes`
 
-Ce modèle permet d'analyser les ventes selon différents axes :
+Permet d'analyser les ventes selon :
 
-- date ;
-- produit ;
-- catégorie ;
-- département ;
-- marché.
+- la date ;
+- le produit ;
+- la catégorie ;
+- le département ;
+- le marché.
 
-Les principaux indicateurs sont :
+Principaux indicateurs :
 
 - quantité vendue ;
 - chiffre d'affaires ;
@@ -187,9 +220,7 @@ Les principaux indicateurs sont :
 
 ### `performance_livraison`
 
-Ce modèle permet d'étudier la performance des livraisons.
-
-Il contient notamment :
+Permet d'analyser la performance logistique à travers :
 
 - nombre de commandes ;
 - nombre de commandes en retard ;
@@ -208,7 +239,7 @@ Days for shipment (scheduled)
 
 ### `performance_produit`
 
-Ce modèle permet d'analyser la performance des produits à travers :
+Permet d'analyser la performance des produits à travers :
 
 - quantité vendue ;
 - chiffre d'affaires ;
@@ -220,9 +251,9 @@ Ce modèle permet d'analyser la performance des produits à travers :
 
 ## 🔍 dbt
 
-dbt est utilisé pour gérer les transformations SQL et les dépendances entre les différents modèles.
+dbt est utilisé pour gérer les transformations SQL, les dépendances entre modèles et les contrôles de qualité.
 
-Le projet contient actuellement :
+Le projet dbt contient actuellement :
 
 ```text
 15 modèles
@@ -230,7 +261,7 @@ Le projet contient actuellement :
 1 source
 ```
 
-Les dépendances sont gérées avec `ref()`.
+Les dépendances entre les modèles sont gérées avec `ref()`.
 
 Exemple :
 
@@ -244,20 +275,24 @@ La source Snowflake est déclarée avec `source()` :
 FROM {{ source('logistic_bronze', 'RAW_DATACO') }}
 ```
 
-Cela permet à dbt de construire les modèles dans le bon ordre.
+Cela permet à dbt de comprendre les dépendances et d'exécuter les modèles dans le bon ordre.
+
+La documentation détaillée du projet dbt est disponible ici :
+
+**[Voir le projet dbt →](DBT/)**
 
 ---
 
 ## 🧪 Qualité des données
 
-Des tests dbt ont été ajoutés afin de contrôler la qualité de certaines données importantes.
+Des tests dbt sont utilisés pour contrôler les données importantes du modèle.
 
-Les tests portent notamment sur :
+Les contrôles portent notamment sur :
 
 - les valeurs nulles ;
 - l'unicité des identifiants.
 
-Les principaux champs contrôlés sont notamment :
+Exemples de champs contrôlés :
 
 ```text
 Customer Id
@@ -271,7 +306,7 @@ Shipping Mode
 
 ### Résultats
 
-Le dernier `dbt run` :
+Dernier `dbt run` :
 
 ```text
 15 modèles exécutés
@@ -280,7 +315,7 @@ Le dernier `dbt run` :
 0 ERROR
 ```
 
-Le dernier `dbt test` :
+Dernier `dbt test` :
 
 ```text
 24 tests exécutés
@@ -306,7 +341,7 @@ Le dataset contient notamment des informations relatives aux :
 - remises ;
 - bénéfices ;
 - livraisons ;
-- localisation des commandes.
+- localisations.
 
 La source utilisée dans le projet contient :
 
@@ -324,39 +359,78 @@ Le fichier est stocké dans AWS S3 avant d'être chargé dans Snowflake.
 Les données finales sont organisées autour de trois principaux axes :
 
 ```text
-Ventes
-   ↓
-Performance commerciale
-
-Livraisons
-   ↓
-Performance logistique
-
-Produits
-   ↓
-Performance produit
+                         GOLD
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+          ▼                ▼                ▼
+        Ventes        Performance      Performance
+                      livraison         produit
+          │                │                │
+          ▼                ▼                ▼
+     Performance       Analyse des      Analyse des
+     commerciale        délais           produits
 ```
 
 Ces modèles permettent de disposer de données déjà structurées pour une utilisation analytique en aval.
 
 ---
 
-## 📐 Documentation
+## 📁 Structure du repository
 
-Le repository contient également :
+Le repository reste volontairement simple afin de séparer les différents composants du projet :
 
-- [Configuration Snowflake](snowflake/setup.sql)
-- [Projet dbt](dbt_Logistic/README.md)
-- [Configuration AWS](aws/setup.sql)
+```text
+logistics-platform-data/
+│
+├── README.md
+│
+├── AWS S3/
+│   ├── Connexion AWS S3 - Snowflake...
+│   └── database_aws.png
+│
+├── DBT/
+│   ├── dbt_project.yml
+│   ├── profiles.yml
+│   ├── controls.yml
+│   ├── sources.yml
+│   │
+│   ├── macros/
+│   │   └── generate_schema_name.sql
+│   │
+│   └── models/
+│       ├── BRONZE/
+│       ├── SILVER/
+│       └── GOLD/
+│
+├── Screenshots/
+│   ├── Run dbt project.png
+│   ├── database_aws.png
+│   ├── run test dbt project.png
+│   └── snowflake_dwh.png
+│
+└── Snowflake/
+    ├── 01_snowflake_setup.sql
+    ├── 02_bronze_ingestion.sql
+    └── 03_bronze_raw_dataco.sql
+```
+
+Cette organisation permet de retrouver rapidement :
+
+- la configuration AWS ;
+- la configuration Snowflake ;
+- la logique de transformation dbt ;
+- les modèles Bronze, Silver et Gold ;
+- les contrôles de qualité.
 
 ---
 
 ## 🚀 Lancer le projet
 
-Après avoir configuré Snowflake, AWS et dbt, se placer dans le dossier :
+Après avoir configuré AWS et Snowflake, se placer dans le dossier dbt :
 
 ```bash
-cd dbt_Logistic
+cd DBT
 ```
 
 Vérifier la configuration :
@@ -379,18 +453,36 @@ dbt test --target dev
 
 ---
 
+## 📚 Documentation
+
+Les différents éléments du projet sont accessibles directement depuis le repository :
+
+- **[Configuration AWS S3](AWS%20S3/)** — configuration du stockage et des accès S3
+- **[Configuration Snowflake](Snowflake/)** — création de l'environnement Snowflake et des schémas
+- **[Documentation dbt](dbt_Logistic/README.md)** — structure, modèles, transformations et tests dbt
+
+---
+
 ## 💡 Ce que ce projet m'a permis de pratiquer
 
 Ce projet m'a permis de mettre en pratique plusieurs notions de Data Engineering :
 
 - stockage de données dans AWS S3 ;
-- connexion entre AWS et Snowflake ;
+- connexion entre AWS S3 et Snowflake ;
 - ingestion de données dans un Data Warehouse ;
-- architecture Bronze / Silver / Gold ;
+- architecture Medallion / Bronze, Silver, Gold ;
 - transformations SQL avec dbt ;
 - modélisation de données ;
-- tests de qualité ;
-- gestion des dépendances avec dbt ;
+- tests de qualité des données ;
 - documentation avec GitHub.
+
+---
+
+## 👤 Auteur
+
+**Ahmed Zouaghi**
+
+Master 2 SIAD — Business Intelligence  
+Université de Lille
 
 Orientation : **Data Engineering / Analytics Engineering**
