@@ -39,19 +39,38 @@ Le projet cherche notamment à :
 Le projet repose sur une architecture de type **Medallion**, organisée en trois couches :
 
 ```text
-                                             DataCo CSV
-                                                 ↓
-                                              AWS S3
-                                                 ↓
-                                             Snowflake
-                                                 ↓
-                                             BRONZE
-                                                 ↓
-                                              SILVER
-                                                 ↓
-                                               GOLD
+                         DataCo CSV
+                             │
+                             ▼
+                          AWS S3
+                             │
+                             ▼
+                         Snowflake
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │     BRONZE      │
+                    │   Données brutes│
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │     SILVER      │
+                    │ Nettoyage &     │
+                    │      typage     │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │      GOLD       │
+                    │ Modèles métier  │
+                    └─────────────────┘
 
-Cette organisation permet de séparer les différentes étapes du traitement : ingestion, nettoyage, typage et préparation des données pour l'analyse.
+Cette organisation permet de séparer les différentes étapes du traitement :
+
+Bronze : ingestion et conservation des données sources ;
+Silver : nettoyage, standardisation et typage des données ;
+Gold : préparation des données pour l'analyse et les besoins métier.
 
 ---
 
@@ -372,30 +391,6 @@ Ce projet m'a permis de mettre en pratique plusieurs notions de Data Engineering
 - modélisation de données ;
 - tests de qualité ;
 - gestion des dépendances avec dbt ;
-- versionnement avec Git et GitHub.
-
-J'ai volontairement gardé une architecture relativement simple afin de comprendre chaque étape du traitement et de pouvoir expliquer les choix techniques réalisés.
-
----
-
-## 🔮 Évolutions possibles
-
-Plusieurs améliorations pourraient être ajoutées par la suite :
-
-- mise en place de chargements incrémentaux ;
-- ajout de tests dbt supplémentaires ;
-- contrôle de fraîcheur des sources ;
-- automatisation de l'exécution du pipeline ;
-- mise en place d'une CI avec GitHub Actions ;
-- documentation dbt plus complète.
-
----
-
-## 👤 Auteur
-
-**Ahmed Zouaghi**
-
-Master 2 SIAD — Business Intelligence  
-Université de Lille
+- documentation avec GitHub.
 
 Orientation : **Data Engineering / Analytics Engineering**
