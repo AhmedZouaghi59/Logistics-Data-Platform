@@ -1,0 +1,133 @@
+version: 2
+
+models:
+
+  - name: silver_client
+    columns:
+      - name: "Customer Id"
+        quote: true
+        tests:
+          - not_null
+          - unique
+
+
+  - name: silver_produit
+    columns:
+      - name: "Product Card Id"
+        quote: true
+        tests:
+          - not_null
+          - unique
+
+
+  - name: silver_departement
+    columns:
+      - name: "Department Id"
+        quote: true
+        tests:
+          - not_null
+          - unique
+
+
+  - name: silver_localisation
+    columns:
+      - name: "Order City"
+        quote: true
+        tests:
+          - not_null
+
+
+  - name: silver_livraison
+    columns:
+      - name: "Shipping Mode"
+        quote: true
+        tests:
+          - not_null
+
+
+  - name: silver_commande
+    columns:
+
+      - name: "Order Id"
+        quote: true
+        tests:
+          - not_null
+
+      - name: "Order Item Id"
+        quote: true
+        tests:
+          - not_null
+          - unique
+
+      - name: "Customer Id"
+        quote: true
+        tests:
+          - not_null
+
+      - name: "Product Card Id"
+        quote: true
+        tests:
+          - not_null
+
+      - name: "Department Id"
+        quote: true
+        tests:
+          - not_null
+
+      - name: "order date (DateOrders)"
+        quote: true
+        tests:
+          - not_null
+
+  - name: gold_ventes
+    columns:
+      - name: "order date (DateOrders)"
+        quote: true
+        tests:
+          - not_null
+
+      - name: "Product Card Id"
+        quote: true
+        tests:
+          - not_null
+
+      - name: "Sales"
+        quote: true
+        tests:
+          - not_null
+
+
+  - name: gold_performance_livraison
+    columns:
+      - name: "order date (DateOrders)"
+        quote: true
+        tests:
+          - not_null
+
+      - name: "Shipping Mode"
+        quote: true
+        tests:
+          - not_null
+
+      - name: "Nombre de commandes"
+        quote: true
+        tests:
+          - not_null
+
+
+  - name: gold_performance_produit
+    columns:
+      - name: "Product Card Id"
+        quote: true
+        tests:
+          - not_null
+
+      - name: "Quantité vendue"
+        quote: true
+        tests:
+          - not_null
+
+      - name: "Chiffre d'affaires"
+        quote: true
+        tests:
+          - not_null

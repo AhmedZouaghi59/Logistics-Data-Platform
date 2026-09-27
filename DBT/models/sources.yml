@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: logistic_bronze
+    database: LOGISTIC_DWH
+    schema: BRONZE
+
+    tables:
+      - name: RAW_DATACO
