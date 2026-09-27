@@ -39,38 +39,17 @@ Le projet cherche notamment à :
 Le projet repose sur une architecture de type **Medallion**, organisée en trois couches :
 
 ```text
-                     DataCo CSV
-                         ↓
-                      AWS S3
-                         ↓
-                     Snowflake
-                         ↓
-                     BRONZE
-                         ↓
-                      SILVER
-                         ↓
-                       GOLD
-```
-
-### 🔄 Flux de traitement
-
-Les données suivent un flux structuré depuis leur source jusqu'aux modèles métier :
-
-```text
-DataCo Supply Chain Dataset
-            ↓
-          AWS S3
-            ↓
-     Snowflake Stage
-            ↓
-      RAW_DATACO
-            ↓
-         Bronze
-            ↓
-         Silver
-            ↓
-          Gold
-```
+                                             DataCo CSV
+                                                 ↓
+                                              AWS S3
+                                                 ↓
+                                             Snowflake
+                                                 ↓
+                                             BRONZE
+                                                 ↓
+                                              SILVER
+                                                 ↓
+                                               GOLD
 
 Cette organisation permet de séparer les différentes étapes du traitement : ingestion, nettoyage, typage et préparation des données pour l'analyse.
 
