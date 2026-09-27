@@ -42,32 +42,32 @@ Le projet vise à :
 Le projet repose sur une architecture de type **Medallion**, organisée en trois couches :
 
 ```text
-                                                                             DataCo CSV
-                                                                                 │
-                                                                                 ▼
-                                                                              AWS S3
-                                                                                 │
-                                                                                 ▼
-                                                                             Snowflake
-                                                                                 │
-                                                                                 ▼
-                                                                        ┌─────────────────┐
-                                                                        │     BRONZE      │
-                                                                        │   Données brutes│
-                                                                        └────────┬────────┘
-                                                                                 │
-                                                                                 ▼
-                                                                        ┌─────────────────┐
-                                                                        │     SILVER      │
-                                                                        │ Nettoyage &     │
-                                                                        │      typage     │
-                                                                        └────────┬────────┘
-                                                                                 │
-                                                                                 ▼
-                                                                        ┌─────────────────┐
-                                                                        │      GOLD       │
-                                                                        │ Modèles métier  │
-                                                                        └─────────────────┘
+                                                           DataCo CSV
+                                                               │
+                                                               ▼
+                                                            AWS S3
+                                                               │
+                                                               ▼
+                                                           Snowflake
+                                                               │
+                                                               ▼
+                                                      ┌─────────────────┐
+                                                      │     BRONZE      │
+                                                      │   Données brutes│
+                                                      └────────┬────────┘
+                                                               │
+                                                               ▼
+                                                      ┌─────────────────┐
+                                                      │     SILVER      │
+                                                      │ Nettoyage &     │
+                                                      │      typage     │
+                                                      └────────┬────────┘
+                                                               │
+                                                               ▼
+                                                      ┌─────────────────┐
+                                                      │      GOLD       │
+                                                      │ Modèles métier  │
+                                                      └─────────────────┘
 ```
 
 Cette organisation permet de séparer les différentes étapes du traitement :
@@ -359,17 +359,17 @@ Le fichier est stocké dans AWS S3 avant d'être chargé dans Snowflake.
 Les données finales sont organisées autour de trois principaux axes :
 
 ```text
-                                                                             GOLD
-                                                                               │
-                                                              ┌────────────────┼────────────────┐
-                                                              │                │                │
-                                                              ▼                ▼                ▼
-                                                            Ventes        Performance      Performance
-                                                                          livraison         produit
-                                                              │                │                │
-                                                              ▼                ▼                ▼
-                                                         Performance       Analyse des      Analyse des
-                                                         commerciale        délais           produits
+                                                           GOLD
+                                                             │
+                                            ┌────────────────┼────────────────┐
+                                            │                │                │
+                                            ▼                ▼                ▼
+                                          Ventes        Performance      Performance
+                                                        livraison         produit
+                                            │                │                │
+                                            ▼                ▼                ▼
+                                       Performance       Analyse des      Analyse des
+                                       commerciale        délais           produits
 ```
 
 Ces modèles permettent de disposer de données déjà structurées pour une utilisation analytique en aval.
@@ -381,38 +381,38 @@ Ces modèles permettent de disposer de données déjà structurées pour une uti
 Le repository reste volontairement simple afin de séparer les différents composants du projet :
 
 ```text
-                                                                  logistics-platform-data/
-                                                                  │
-                                                                  ├── README.md
-                                                                  │
-                                                                  ├── AWS S3/
-                                                                  │   ├── Connexion AWS S3 - Snowflake...
-                                                                  │   └── database_aws.png
-                                                                  │
-                                                                  ├── DBT/
-                                                                  │   ├── dbt_project.yml
-                                                                  │   ├── profiles.yml
-                                                                  │   ├── controls.yml
-                                                                  │   ├── sources.yml
-                                                                  │   │
-                                                                  │   ├── macros/
-                                                                  │   │   └── generate_schema_name.sql
-                                                                  │   │
-                                                                  │   └── models/
-                                                                  │       ├── BRONZE/
-                                                                  │       ├── SILVER/
-                                                                  │       └── GOLD/
-                                                                  │
-                                                                  ├── Screenshots/
-                                                                  │   ├── Run dbt project.png
-                                                                  │   ├── database_aws.png
-                                                                  │   ├── run test dbt project.png
-                                                                  │   └── snowflake_dwh.png
-                                                                  │
-                                                                  └── Snowflake/
-                                                                      ├── 01_snowflake_setup.sql
-                                                                      ├── 02_bronze_ingestion.sql
-                                                                      └── 03_bronze_raw_dataco.sql
+                                            logistics-platform-data/
+                                            │
+                                            ├── README.md
+                                            │
+                                            ├── AWS S3/
+                                            │   ├── Connexion AWS S3 - Snowflake...
+                                            │   └── database_aws.png
+                                            │
+                                            ├── DBT/
+                                            │   ├── dbt_project.yml
+                                            │   ├── profiles.yml
+                                            │   ├── controls.yml
+                                            │   ├── sources.yml
+                                            │   │
+                                            │   ├── macros/
+                                            │   │   └── generate_schema_name.sql
+                                            │   │
+                                            │   └── models/
+                                            │       ├── BRONZE/
+                                            │       ├── SILVER/
+                                            │       └── GOLD/
+                                            │
+                                            ├── Screenshots/
+                                            │   ├── Run dbt project.png
+                                            │   ├── database_aws.png
+                                            │   ├── run test dbt project.png
+                                            │   └── snowflake_dwh.png
+                                            │
+                                            └── Snowflake/
+                                                ├── 01_snowflake_setup.sql
+                                                ├── 02_bronze_ingestion.sql
+                                                └── 03_bronze_raw_dataco.sql
 ```
 
 Cette organisation permet de retrouver rapidement :
@@ -429,9 +429,9 @@ Cette organisation permet de retrouver rapidement :
 
 Les différents éléments du projet sont accessibles directement depuis le repository :
 
-- **[Configuration AWS S3](AWS%20S3/)** — configuration du stockage et des accès S3
+- **[Configuration AWS S3](AWS/)** — configuration du stockage et des accès S3
 - **[Configuration Snowflake](Snowflake/)** — création de l'environnement Snowflake et des schémas
-- **[Documentation dbt](dbt_Logistic/README.md)** — structure, modèles, transformations et tests dbt
+- **[Documentation dbt](dbt_Logistic/DBT)** — structure, modèles, transformations et tests dbt
 
 ---
 
