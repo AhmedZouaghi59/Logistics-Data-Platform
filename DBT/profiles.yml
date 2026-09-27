@@ -1,0 +1,10 @@
+dbt_Logistic:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      role: LOGISTIC_ADMIN
+      warehouse: LOGISTIC_WH
+      database: LOGISTIC_DWH
+      schema: RAW
+      threads: 8
