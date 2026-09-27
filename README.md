@@ -431,7 +431,7 @@ Les différents éléments du projet sont accessibles directement depuis le repo
 
 - **[Configuration AWS S3](AWS/)** — configuration du stockage et des accès S3
 - **[Configuration Snowflake](Snowflake/)** — création de l'environnement Snowflake et des schémas
-- **[Documentation dbt](dbt_Logistic/DBT)** — structure, modèles, transformations et tests dbt
+- **[Documentation dbt](DBT/)** — structure, modèles, transformations et tests dbt
 
 ---
 
