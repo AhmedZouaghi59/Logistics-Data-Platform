@@ -485,16 +485,16 @@ Logistics-Data-Platform/
 │
 ├── README.md
 │
-├── aws-s3/
+├── AWS S3/
 │   ├── Connexion AWS S3 - Snowflake...
 │   └── database_aws.png
 │
-├── snowflake/
+├── Snowflake/
 │   ├── 01_snowflake_setup.sql
 │   ├── 02_bronze_ingestion.sql
 │   └── 03_bronze_raw_dataco.sql
 │
-├── dbt/
+├── DBT/
 │   ├── dbt_project.yml
 │   ├── sources.yml
 │   ├── controls.yml
@@ -504,7 +504,7 @@ Logistics-Data-Platform/
 │       ├── SILVER/
 │       └── GOLD/
 │
-└── screenshots/
+└── Screenshots/
     ├── run_dbt_project.png
     ├── database_aws.png
     ├── run_test_dbt_project.png
