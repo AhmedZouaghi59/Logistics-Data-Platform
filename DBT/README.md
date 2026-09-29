@@ -1,24 +1,25 @@
-# 🔍 DBT — Logistics Data Platform
+# dbt — Logistics Data Platform
 
-## 📊 Présentation
+## Présentation
 
 Ce dossier contient la partie **dbt** du projet Logistics Data Platform.
 
 dbt est utilisé pour transformer les données chargées dans Snowflake, organiser les modèles selon une architecture **Bronze / Silver / Gold** et mettre en place des contrôles de qualité sur les données.
 
+Le projet dbt a été développé et exécuté entièrement dans **dbt Cloud**, connecté à l'environnement Snowflake du projet.
+
 L'objectif est de conserver une logique de transformation claire, versionnée et facilement maintenable.
 
 ---
 
-## 🧱 Architecture dbt
+## Architecture dbt
 
 Le projet suit la structure suivante :
 
 ```text
-DBT/
+dbt/
 │
 ├── dbt_project.yml
-├── profiles.yml
 ├── controls.yml
 ├── sources.yml
 │
@@ -50,9 +51,11 @@ DBT/
         └── gold_performance_produit.sql
 ```
 
+> Le fichier `profiles.yml` (identifiants de connexion Snowflake) n'est volontairement pas versionné dans ce dossier : la connexion est gérée directement dans l'interface dbt Cloud.
+
 ---
 
-## 🔄 Flux de transformation
+## Flux de transformation
 
 ```text
 Snowflake
@@ -82,7 +85,7 @@ RAW_DATACO
 
 ---
 
-## 🥉 Bronze
+## Bronze
 
 Les modèles Bronze récupèrent les données depuis la source Snowflake `RAW_DATACO`.
 
@@ -118,7 +121,7 @@ Cette couche reste volontairement proche de la source afin de conserver une prem
 
 ---
 
-## 🥈 Silver
+## Silver
 
 La couche Silver correspond au nettoyage et au typage des données.
 
@@ -169,7 +172,7 @@ WHERE TRY_TO_NUMBER("Order Id") IS NOT NULL
 
 ---
 
-## 🥇 Gold
+## Gold
 
 La couche Gold contient les modèles orientés métier.
 
@@ -214,7 +217,7 @@ Ce modèle permet notamment d'obtenir le **chiffre d'affaires**, les **quantité
 
 ---
 
-## 🚚 Performance des livraisons
+## Performance des livraisons
 
 Le modèle `gold_performance_livraison` permet de mesurer les performances logistiques.
 
@@ -254,7 +257,7 @@ Le modèle fournit également :
 
 ---
 
-## 📦 Performance produit
+## Performance produit
 
 Le modèle `gold_performance_produit` regroupe les indicateurs par produit :
 
@@ -290,7 +293,7 @@ GROUP BY
 
 ---
 
-## 🔗 Dépendances entre les modèles
+## Dépendances entre les modèles
 
 dbt permet de gérer les dépendances entre les différentes couches grâce à `ref()`.
 
@@ -333,7 +336,7 @@ Cela vérifie que chaque `Customer Id` présent dans les commandes existe bien d
 
 ---
 
-## 🧪 Contrôles de qualité
+## Contrôles de qualité
 
 Le projet contient actuellement :
 
@@ -426,9 +429,9 @@ D'autres contrôles vérifient notamment :
 
 ---
 
-## ✅ Résultats des tests
+## Résultats des tests
 
-Le dernier `dbt test` a été exécuté avec succès :
+Le dernier `dbt test` a été exécuté avec succès depuis dbt Cloud :
 
 ```text
 70 tests exécutés
@@ -449,7 +452,7 @@ Target     dev
 
 ---
 
-## ⚙️ Configuration du projet
+## Configuration du projet
 
 Les modèles sont configurés dans `dbt_project.yml` selon les trois couches :
 
@@ -473,29 +476,18 @@ Une macro `generate_schema_name.sql` permet de conserver directement les schéma
 
 ---
 
-## 🚀 Exécution
+## Exécution
 
-Depuis le dossier `DBT` :
+Ce projet a été développé et exécuté intégralement dans **dbt Cloud**, sans dbt Core en local :
 
-```bash
-dbt debug --target dev
-```
-
-Construire les modèles :
-
-```bash
-dbt run --target dev
-```
-
-Exécuter les contrôles :
-
-```bash
-dbt test --target dev
-```
+- la connexion à Snowflake (compte, rôle, base, warehouse) est configurée directement dans les paramètres de l'environnement dbt Cloud ;
+- les modèles sont développés dans l'IDE en ligne de dbt Cloud ;
+- les commandes `dbt run`, `dbt test` et `dbt build` sont lancées depuis l'interface dbt Cloud (bouton d'exécution ou ligne de commande intégrée à l'IDE), sans terminal local ;
+- le code est ensuite publié manuellement sur GitHub depuis dbt Cloud.
 
 ---
 
-## 💡 Ce que cette partie dbt m'a permis de pratiquer
+## Ce que cette partie dbt m'a permis de pratiquer
 
 - transformations SQL avec dbt ;
 - architecture Bronze / Silver / Gold ;
@@ -507,13 +499,4 @@ dbt test --target dev
 - agrégations et modèles analytiques ;
 - organisation et versionnement d'un projet Data Engineering.
 
----
 
-## 👤 Auteur
-
-**Ahmed Zouaghi**
-
-Master 2 SIAD — Business Intelligence  
-Université de Lille
-
-Orientation : **Data Engineering / Analytics Engineering**
