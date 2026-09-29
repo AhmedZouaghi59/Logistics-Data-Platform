@@ -17,70 +17,68 @@ L'objectif est de conserver une logique de transformation claire, versionnée et
 Le projet suit la structure suivante :
 
 ```text
-dbt/
-│
-├── dbt_project.yml
-├── controls.yml
-├── sources.yml
-│
-├── macros/
-│   ├── generate_schema_name.sql
-│   └── data_quality_tests.sql
-│
-└── models/
+    DBT/
     │
-    ├── BRONZE/
-    │   ├── bronze_client.sql
-    │   ├── bronze_produit.sql
-    │   ├── bronze_departement.sql
-    │   ├── bronze_localisation.sql
-    │   ├── bronze_livraison.sql
-    │   └── bronze_commande.sql
+    ├── dbt_project.yml
+    ├── controls.yml
+    ├── sources.yml
     │
-    ├── SILVER/
-    │   ├── silver_client.sql
-    │   ├── silver_produit.sql
-    │   ├── silver_departement.sql
-    │   ├── silver_localisation.sql
-    │   ├── silver_livraison.sql
-    │   └── silver_commande.sql
+    ├── macros/
+    │   ├── generate_schema_name.sql
+    │   └── data_quality_tests.sql
     │
-    └── GOLD/
-        ├── gold_ventes.sql
-        ├── gold_performance_livraison.sql
-        └── gold_performance_produit.sql
+    └── models/
+        │
+        ├── BRONZE/
+        │   ├── bronze_client.sql
+        │   ├── bronze_produit.sql
+        │   ├── bronze_departement.sql
+        │   ├── bronze_localisation.sql
+        │   ├── bronze_livraison.sql
+        │   └── bronze_commande.sql
+        │
+        ├── SILVER/
+        │   ├── silver_client.sql
+        │   ├── silver_produit.sql
+        │   ├── silver_departement.sql
+        │   ├── silver_localisation.sql
+        │   ├── silver_livraison.sql
+        │   └── silver_commande.sql
+        │
+        └── GOLD/
+            ├── gold_ventes.sql
+            ├── gold_performance_livraison.sql
+            └── gold_performance_produit.sql
 ```
-
-> Le fichier `profiles.yml` (identifiants de connexion Snowflake) n'est volontairement pas versionné dans ce dossier : la connexion est gérée directement dans l'interface dbt Cloud.
 
 ---
 
 ## Flux de transformation
 
 ```text
-Snowflake
-    │
-    ▼
-RAW_DATACO
-    │
-    ▼
-┌───────────────┐
-│    BRONZE     │
-│ Structuration │
-└───────┬───────┘
-        │
-        ▼
-┌───────────────┐
-│    SILVER     │
-│ Nettoyage     │
-│ Typage        │
-└───────┬───────┘
-        │
-        ▼
-┌───────────────┐
-│     GOLD      │
-│ Modèles métier│
-└───────────────┘
+                                                            Snowflake
+                                                                │
+                                                                ▼
+                                                            RAW_DATACO
+                                                                │
+                                                                ▼
+                                                        ┌───────────────┐
+                                                        │    BRONZE     │
+                                                        │ Structuration │
+                                                        └───────┬───────┘
+                                                                │
+                                                                ▼
+                                                        ┌───────────────┐
+                                                        │    SILVER     │
+                                                        │ Nettoyage     │
+                                                        │ Typage        │
+                                                        └───────┬───────┘
+                                                                │
+                                                                ▼
+                                                        ┌───────────────┐
+                                                        │     GOLD      │
+                                                        │ Modèles métier│
+                                                        └───────────────┘
 ```
 
 ---
@@ -298,24 +296,20 @@ GROUP BY
 dbt permet de gérer les dépendances entre les différentes couches grâce à `ref()`.
 
 ```text
-bronze_client
-      │
-      ▼
-silver_client
-
-bronze_produit
-      │
-      ▼
-silver_produit
-      │
-      └──────────────┐
-                     ▼
-              silver_commande
-                     │
-          ┌──────────┼──────────┐
-          ▼          ▼          ▼
-      gold_ventes  performance  performance
-                   livraison     produit
+                                                            
+                                        bronze_produit
+                                              │
+                                              ▼
+                                        silver_produit
+                                              │
+                                              └──────────────┐
+                                                             ▼
+                                                      silver_commande
+                                                             │
+                                                  ┌──────────┼──────────┐
+                                                  ▼          ▼          ▼
+                                              gold_ventes  performance  performance
+                                                           livraison     produit
 ```
 
 Les relations entre les données sont également contrôlées avec les tests `relationships`.
@@ -370,15 +364,15 @@ Les principales relations contrôlées sont :
 
 ```text
 silver_commande.Customer Id
-        ↓
+            ↓
 silver_client.Customer Id
 
 silver_commande.Product Card Id
-        ↓
+            ↓
 silver_produit.Product Card Id
 
 silver_commande.Department Id
-        ↓
+            ↓
 silver_departement.Department Id
 ```
 
@@ -472,17 +466,15 @@ models:
       +materialized: table
 ```
 
-Une macro `generate_schema_name.sql` permet de conserver directement les schémas `BRONZE`, `SILVER` et `GOLD`.
-
 ---
 
 ## Exécution
 
-Ce projet a été développé et exécuté intégralement dans **dbt Cloud**, sans dbt Core en local :
+Ce projet a été développé et exécuté intégralement dans **dbt Cloud** :
 
 - la connexion à Snowflake (compte, rôle, base, warehouse) est configurée directement dans les paramètres de l'environnement dbt Cloud ;
 - les modèles sont développés dans l'IDE en ligne de dbt Cloud ;
-- les commandes `dbt run`, `dbt test` et `dbt build` sont lancées depuis l'interface dbt Cloud (bouton d'exécution ou ligne de commande intégrée à l'IDE), sans terminal local ;
+- les commandes `dbt run`, `dbt test` et `dbt build` sont lancées depuis l'interface dbt Cloud (bouton d'exécution), sans terminal local ;
 - le code est ensuite publié manuellement sur GitHub depuis dbt Cloud.
 
 ---
@@ -496,7 +488,6 @@ Ce projet a été développé et exécuté intégralement dans **dbt Cloud**, sa
 - tests de qualité standards ;
 - tests métier personnalisés avec des macros ;
 - contrôles d'intégrité référentielle ;
-- agrégations et modèles analytiques ;
-- organisation et versionnement d'un projet Data Engineering.
+- agrégations et modèles analytiques.
 
 
