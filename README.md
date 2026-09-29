@@ -15,36 +15,36 @@ Le projet met en pratique le stockage objet, le Data Warehouse cloud, SQL, la tr
 ## Architecture
 
 ```text
-                         DataCo CSV
-                             │
-                             ▼
-                          AWS S3
-                             │
-                             ▼
-                         Snowflake
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │     BRONZE      │
-                    │ Données brutes  │
-                    │   180 519 lignes│
-                    │   53 colonnes   │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │     SILVER      │
-                    │ Nettoyage       │
-                    │ Typage          │
-                    │ Standardisation │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │      GOLD       │
-                    │ Modèles métier  │
-                    │ Agrégations     │
-                    └─────────────────┘
+                                                           DataCo CSV
+                                                               │
+                                                               ▼
+                                                            AWS S3
+                                                               │
+                                                               ▼
+                                                           Snowflake
+                                                               │
+                                                               ▼
+                                                      ┌─────────────────┐
+                                                      │     BRONZE      │
+                                                      │ Données brutes  │
+                                                      │   180 519 lignes│
+                                                      │   53 colonnes   │
+                                                      └────────┬────────┘
+                                                               │
+                                                               ▼
+                                                      ┌─────────────────┐
+                                                      │     SILVER      │
+                                                      │ Nettoyage       │
+                                                      │ Typage          │
+                                                      │ Standardisation │
+                                                      └────────┬────────┘
+                                                               │
+                                                               ▼
+                                                      ┌─────────────────┐
+                                                      │      GOLD       │
+                                                      │ Modèles métier  │
+                                                      │ Agrégations     │
+                                                      └─────────────────┘
 ```
 
 ### Stack
