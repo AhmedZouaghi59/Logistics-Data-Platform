@@ -8,43 +8,43 @@ Le flux construit est volontairement simple et reproductible :
 
 **DataCo CSV → AWS S3 → Snowflake → dbt → Bronze / Silver / Gold**
 
-Le projet met en pratique le stockage objet, le Data Warehouse cloud, SQL, la transformation ELT avec dbt, la modélisation, les tests de qualité, Git/GitHub et une première CI GitHub Actions.
+Le projet met en pratique le stockage objet, le Data Warehouse cloud, SQL, la transformation ELT avec dbt (développé et exécuté via **dbt Cloud**), la modélisation, les tests de qualité, ainsi que le versionnement et la documentation avec Git/GitHub.
 
 ---
 
 ## Architecture
 
 ```text
-                                                     DataCo CSV
-                                                         │
-                                                         ▼
-                                                      AWS S3
-                                                         │
-                                                         ▼
-                                                     Snowflake
-                                                         │
-                                                         ▼
-                                                ┌─────────────────┐
-                                                │     BRONZE      │
-                                                │ Données brutes  │
-                                                │   180 519 lignes│
-                                                │   52 colonnes   │    
-                                                └────────┬────────┘
-                                                         │
-                                                         ▼
-                                                ┌─────────────────┐
-                                                │     SILVER      │
-                                                │ Nettoyage       │
-                                                │ Typage          │
-                                                │ Standardisation │
-                                                └────────┬────────┘
-                                                         │
-                                                         ▼
-                                                ┌─────────────────┐
-                                                │      GOLD       │
-                                                │ Modèles métier  │
-                                                │ Agrégations     │
-                                                └─────────────────┘
+                         DataCo CSV
+                             │
+                             ▼
+                          AWS S3
+                             │
+                             ▼
+                         Snowflake
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │     BRONZE      │
+                    │ Données brutes  │
+                    │   180 519 lignes│
+                    │   53 colonnes   │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │     SILVER      │
+                    │ Nettoyage       │
+                    │ Typage          │
+                    │ Standardisation │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │      GOLD       │
+                    │ Modèles métier  │
+                    │ Agrégations     │
+                    └─────────────────┘
 ```
 
 ### Stack
@@ -54,11 +54,12 @@ Le projet met en pratique le stockage objet, le Data Warehouse cloud, SQL, la tr
 | **AWS S3** | Stockage du fichier source |
 | **Snowflake** | Data Warehouse |
 | **SQL** | Ingestion, transformation et contrôles |
-| **dbt** | Transformation, modélisation et tests |
+| **dbt Cloud** | Transformation, modélisation et tests |
+| **Git / GitHub** | Versionnement et documentation |
 
 ---
 
-# 1. Source & ingestion
+## 1. Source & ingestion
 
 La source utilisée est le dataset public **DataCo Supply Chain**.
 
@@ -88,33 +89,33 @@ Le fichier source contient **53 colonnes** et environ **180 519 lignes**.
 
 ---
 
-# 2. Architecture Snowflake
+## 2. Architecture Snowflake
 
 ```text
-                                          LOGISTIC_DWH
-                                          │
-                                          ├── BRONZE
-                                          │   └── RAW_DATACO
-                                          │
-                                          ├── SILVER
-                                          │   ├── client
-                                          │   ├── produit
-                                          │   ├── departement
-                                          │   ├── localisation
-                                          │   ├── livraison
-                                          │   └── commande
-                                          │
-                                          └── GOLD
-                                              ├── ventes
-                                              ├── performance_livraison
-                                              └── performance_produit
+LOGISTIC_DWH
+│
+├── BRONZE
+│   └── RAW_DATACO
+│
+├── SILVER
+│   ├── client
+│   ├── produit
+│   ├── departement
+│   ├── localisation
+│   ├── livraison
+│   └── commande
+│
+└── GOLD
+    ├── ventes
+    ├── performance_livraison
+    └── performance_produit
 ```
 
 Le warehouse Snowflake utilisé est dimensionné en **X-SMALL**, avec suspension automatique après inactivité afin de limiter la consommation de crédits.
 
 ---
 
-# 3. Bronze — conserver la donnée source
+## 3. Bronze — conserver la donnée source
 
 La couche Bronze constitue le point d'entrée dans Snowflake. La donnée source est conservée au plus proche de son format initial.
 
@@ -129,6 +130,8 @@ CREATE FILE FORMAT IF NOT EXISTS FF_DATACO_CSV
     NULL_IF = ('', 'NULL')
     ENCODING = 'ISO88591';
 ```
+
+`ENCODING = 'ISO88591'` correspond au jeu de caractères Latin-1 du fichier source DataCo et est reconnu tel quel par Snowflake.
 
 À partir de la donnée brute, dbt crée plusieurs modèles Bronze :
 
@@ -147,7 +150,7 @@ Cette première séparation rend le modèle plus lisible sans appliquer de trans
 
 ---
 
-# 4. Silver — nettoyage et typage
+## 4. Silver — nettoyage et typage
 
 La couche Silver transforme les données brutes en données exploitables.
 
@@ -190,7 +193,7 @@ L'utilisation de `TRY_TO_*` permet de convertir les données sans faire échouer
 
 ---
 
-# 5. Gold — modèles orientés métier
+## 5. Gold — modèles orientés métier
 
 La couche Gold expose des tables directement utilisables pour l'analyse.
 
@@ -307,9 +310,9 @@ GROUP BY
 
 ---
 
-# 6. dbt — transformation & dépendances
+## 6. dbt — transformation & dépendances
 
-dbt gère les transformations SQL, les dépendances et les tests.
+dbt gère les transformations SQL, les dépendances et les tests, développés et exécutés directement dans **dbt Cloud**.
 
 ```sql
 FROM {{ ref('silver_commande') }}
@@ -319,18 +322,18 @@ FROM {{ ref('silver_commande') }}
 
 Le flux est :
 
-                            ```text
-                            RAW_DATACO
-                                 │
-                                 ▼
-                            BRONZE
-                                 │
-                                 ▼
-                            SILVER
-                                 │
-                                 ▼
-                            GOLD
-                            ```
+```text
+RAW_DATACO
+     │
+     ▼
+BRONZE
+     │
+     ▼
+SILVER
+     │
+     ▼
+GOLD
+```
 
 Configuration des schémas :
 
@@ -350,7 +353,7 @@ models:
       +materialized: table
 ```
 
-### `sources.yml`
+### sources.yml
 
 ```yaml
 version: 2
@@ -367,7 +370,7 @@ La source dbt permet de distinguer la donnée brute externe au projet des modèl
 
 ---
 
-# 7. Data Quality & `controls.yml`
+## 7. Data Quality & controls.yml
 
 La qualité des données est contrôlée directement dans dbt avec :
 
@@ -426,7 +429,7 @@ Le contrôle accepte donc une remise de `0` et vérifie que le taux reste compri
 
 ---
 
-# 8. Contrôles SQL
+## 8. Contrôles SQL
 
 ### Vérification du volume
 
@@ -475,9 +478,7 @@ ORDER BY "Chiffre d'affaires" DESC;
 
 ---
 
-# 9. Structure du repository
-
-La structure cible est volontairement homogène :
+## 9. Structure du repository
 
 ```text
 Logistics-Data-Platform/
@@ -488,7 +489,7 @@ Logistics-Data-Platform/
 │   ├── Connexion AWS S3 - Snowflake...
 │   └── database_aws.png
 │
-├── Snowflake/
+├── snowflake/
 │   ├── 01_snowflake_setup.sql
 │   ├── 02_bronze_ingestion.sql
 │   └── 03_bronze_raw_dataco.sql
@@ -503,39 +504,49 @@ Logistics-Data-Platform/
 │       ├── SILVER/
 │       └── GOLD/
 │
-└── Screenshots/
-    ├── Run dbt project.png
+└── screenshots/
+    ├── run_dbt_project.png
     ├── database_aws.png
-    ├── run test dbt project.png
+    ├── run_test_dbt_project.png
     └── snowflake_dwh.png
 ```
 
 ### Convention de nommage
 
-Les dossiers techniques sont normalisés en :
-
-```text
-aws-s3/
-dbt/
-Snowflake/
-Screenshots/
-```
+Tous les dossiers techniques sont en minuscules, avec des tirets pour séparer les mots (`kebab-case`) : `aws-s3/`, `snowflake/`, `dbt/`, `screenshots/`.
 
 ---
 
-# 10. Évolutions possibles
+## 10. Lancer le projet
+
+Ce projet a été entièrement développé et exécuté dans le cloud, sans environnement local :
+
+- **Snowflake** héberge le Data Warehouse (bases, schémas, stage, storage integration) ;
+- **dbt Cloud** héberge le projet dbt : connexion à Snowflake, développement des modèles, exécution des `dbt run` / `dbt test` / `dbt build` et consultation des logs se font directement depuis l'interface dbt Cloud ;
+- le code (modèles, macros, fichiers YAML) est ensuite **publié manuellement sur GitHub** depuis dbt Cloud, sans utilisation de la ligne de commande ni de dbt Core en local.
+
+Pour reproduire ce projet :
+
+1. Créer un compte Snowflake et exécuter les scripts du dossier `snowflake/` (création du warehouse, de la base, du stage et de la storage integration S3) ;
+2. Créer un projet dans dbt Cloud et le connecter à l'environnement Snowflake créé à l'étape précédente ;
+3. Importer les fichiers du dossier `dbt/` dans le projet dbt Cloud ;
+4. Lancer les commandes `dbt run` et `dbt test` (ou `dbt build`) depuis l'interface dbt Cloud.
+
+---
+
+## 11. Évolutions possibles
 
 ### Data Engineering
 
 - automatisation du chargement des nouvelles données S3 ;
-- orchestration du pipeline;
+- orchestration du pipeline ;
 - monitoring des traitements ;
 - suivi des coûts Snowflake ;
 - ajout de contrôles de qualité supplémentaires.
 
 ### Data Analytics / BI
 
-Une couche analytique peut être ajoutée au-dessus des modèles Gold, notamment avec **Power BI**.
+Une couche analytique peut être ajoutée au-dessus des modèles Gold, notamment avec Power BI.
 
 Les modèles `ventes`, `performance_livraison` et `performance_produit` pourraient alimenter un rapport orienté pilotage logistique :
 
@@ -545,24 +556,23 @@ Les modèles `ventes`, `performance_livraison` et `performance_produit` pourraie
 - analyse par marché ;
 - délais de livraison.
 
-Cette évolution permet de conserver une orientation **Data Engineering / Analytics Engineering** tout en valorisant les compétences **Data Analyst / BI**.
+Cette évolution permet de conserver une orientation Data Engineering / Analytics Engineering tout en valorisant les compétences Data Analyst / BI.
 
 ---
 
-# 11. Ce que ce projet démontre
+## 12. Ce que ce projet démontre
 
 Ce projet met principalement en pratique :
 
 - ingestion de données depuis **AWS S3** ;
-- connexion sécurisée entre **AWS et Snowflake** ;
-- organisation d'un Data Warehouse en couches **Bronze / Silver / Gold** ;
-- transformation **ELT avec dbt** ;
+- connexion sécurisée entre AWS et Snowflake ;
+- organisation d'un Data Warehouse en couches Bronze / Silver / Gold ;
+- transformation ELT avec dbt (via dbt Cloud) ;
 - typage et nettoyage de données avec SQL ;
 - modélisation orientée métier ;
 - gestion des dépendances avec `ref()` ;
 - tests de qualité et contrôles de cohérence ;
-- documentation technique ;
-
+- documentation technique.
 
 ---
 
@@ -572,4 +582,4 @@ Ce projet met principalement en pratique :
 
 Projet personnel orienté **Data Engineering / Analytics Engineering**
 
-**AWS S3 · Snowflake · SQL · dbt
+Technologies principales : **AWS S3 · Snowflake · SQL · dbt Cloud · GitHub**
